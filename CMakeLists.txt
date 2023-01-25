@@ -3,6 +3,6 @@ project(CLox C)
 
 set(CMAKE_C_STANDARD 11)
 
-set(SOURCES main.c common.h chunk.c memory.c memory.h chunk.h)
+set(SOURCES main.c common.h chunk.c memory.c memory.h chunk.h debug.h debug.c value.h value.c vm.h vm.c)
 
 add_executable(CLox ${SOURCES})
