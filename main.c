@@ -16,7 +16,7 @@ int main(int argc, const char* argv[]) {
     initVM();
 
     char* buffer = readFile("test.clox");
-    compile(buffer);
+    interpret(buffer);
 
     freeVM();
     return 0;

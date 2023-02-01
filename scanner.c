@@ -12,39 +12,70 @@ typedef struct {
 
 Scanner scanner;
 
+/**
+ * Sets start and current to beginning of source and line to 1.
+ * @param source the pointer to source text
+ */
 void initScanner(const char* source) {
     scanner.start = source;
     scanner.current = source;
     scanner.line = 1;
 }
 
+/**
+ * @param c the char to test
+ * @return true if c is letter or _ false otherwise
+ */
 static bool isAlpha(char c) {
     return (c >= 'a' && c <= 'z') ||
             (c >= 'A' && c <= 'Z') ||
             c == '_';
 }
 
+/**
+ * @param c the char to test
+ * @return true if c is between '0' and '9' false otherwise.
+ */
 static bool isDigit(char c) {
     return c <= '9' && c >= '0';
 }
 
+/**
+ * @return true if at '\0' false otherwise
+ */
 static bool isAtEnd() {
     return *scanner.current == '\0';
 }
 
+/**
+ * Returns the value at the current pointer and then increments the current pointer.
+ * @return the char at the current pointer.
+ */
 static char advance() {
     return *scanner.current++;
 }
 
+/**
+ * @return the char at the current source text pointer
+ */
 static char peek() {
     return *scanner.current;
 }
 
+/**
+ * @return the value of the char at next location or '\0' if at end of text
+ */
 static char peekNext() {
     if(isAtEnd()) return '\0';
     return *(scanner.current + 1);
 }
 
+/**
+ * Checks if the current location in the source text is the same as a char. If matched then
+ * increments the scanners current pointer.
+ * @param expected the char to compare to the current source char
+ * @return true or false depending on if it matched.
+ */
 static bool match(char expected) {
     if(isAtEnd()) return false;
     if(*scanner.current != expected) return false;
@@ -52,6 +83,11 @@ static bool match(char expected) {
     return true;
 }
 
+/**
+ * Creates a token.
+ * @param type the type of the token.
+ * @return the created token.
+ */
 static Token makeToken(TokenType type) {
     Token token;
     token.type = type;
@@ -61,6 +97,11 @@ static Token makeToken(TokenType type) {
     return token;
 }
 
+/**
+ * Creates an error token.
+ * @param message the message that the error token holds.
+ * @return the error token
+ */
 static Token errorToken(const char* message) {
     Token token;
     token.type = TOKEN_ERROR;
@@ -70,6 +111,9 @@ static Token errorToken(const char* message) {
     return token;
 }
 
+/**
+ * Skips all whitespaces increments line information and skips comments.
+ */
 static void skipWhitespace() {
     for(;;) {
         char c = peek();
@@ -95,6 +139,14 @@ static void skipWhitespace() {
     }
 }
 
+/**
+ * Determines if the current part of the source string is of a certain token type.
+ * @param start the length of the part of the keyword we know matches
+ * @param length the length of the part of the keyword that remains to be matched
+ * @param rest the text of the remaining part of keyword that remains to be matched
+ * @param type the TokenType of the keyword we are matching for
+ * @return the correct TokenType of the token.
+ */
 static TokenType checkKeyword(int start, int length, const char* rest, TokenType type) {
     if(scanner.current - scanner.start == start + length &&
        memcmp(scanner.start + start, rest, length) == 0) {
@@ -104,6 +156,10 @@ static TokenType checkKeyword(int start, int length, const char* rest, TokenType
     }
 }
 
+/**
+ * Determines if the token that starts at *scanner.start is an identifier or a keyword.
+ * @return the TokenType of the token.
+ */
 static TokenType identifierType() {
     switch (*scanner.start) {
         case 'a': return checkKeyword(1, 2, "nd", TOKEN_AND);
@@ -138,11 +194,19 @@ static TokenType identifierType() {
     return TOKEN_IDENTIFIER;
 }
 
+/**
+ * Builds a TOKEN_IDENTIFIER or keyword token from the data that starts at the current source pointer.
+ * @return the identifier or keyword token that is built.
+ */
 static Token identifier() {
     while(isAlpha(peek()) || isDigit(peek())) advance();
     return makeToken(identifierType());
 }
 
+/**
+ * Builds a TOKEN_NUMBER from the data that starts at the current source pointer.
+ * @return the number token that is built.
+ */
 static Token number() {
     while(isDigit(peek())) advance();
 
@@ -154,6 +218,10 @@ static Token number() {
     return makeToken(TOKEN_NUMBER);
 }
 
+/**
+ * Builds a TOKEN_STRING from the data that starts at the current source pointer.
+ * @return the string token that is created or an error token if the string is unterminated.
+ */
 static Token string() {
     while(peek() != '"' && !isAtEnd()) {
         if(peek() == '\n') scanner.line++;
@@ -164,6 +232,10 @@ static Token string() {
     return makeToken(TOKEN_STRING);
 }
 
+/**
+ * Scans the source code for the very next token.
+ * @return the next token in the source code.
+ */
 Token scanToken() {
     skipWhitespace();
     scanner.start = scanner.current;
